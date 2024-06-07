@@ -1,31 +1,108 @@
 import { Component } from 'react';
 
+// Form
+import { FaEdit, FaWindowClose } from 'react-icons/fa';
+
+import './Main.css';
+
 class Main extends Component {
-  constructor(props) {
-    super(props);
+  state = {
+    novaTarefa: '',
+    tarefas: [],
+    index: -1,
+  };
 
-    this.state = {
-      novaTarefa: '',
-    };
+  componentDidMount() {
+    const tarefas = JSON.parse(localStorage.getItem('tarefas'));
 
-    this.inputMudou = this.inputMudou.bind(this);
+    if (!tarefas) return;
+
+    this.setState({ tarefas });
   }
 
-  inputMudou(e) {
+  componentDidUpdate(prevProps, prevState) {
+    const { tarefas } = this.state;
+
+    if (tarefas === prevState.tarefas) return;
+
+    localStorage.setItem('tarefas', JSON.stringify(tarefas));
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const { tarefas, index } = this.state;
+    let { novaTarefa } = this.state;
+    novaTarefa = novaTarefa.trim();
+
+    if (tarefas.indexOf(novaTarefa) !== -1) return;
+
+    const novasTarefas = [...tarefas];
+
+    if (index === -1) {
+      this.setState({
+        tarefas: [...novasTarefas, novaTarefa],
+        novaTarefa: '',
+      });
+    } else {
+      novasTarefas[index] = novaTarefa;
+      this.setState({
+        tarefas: [...novasTarefas],
+        novaTarefa: '',
+        index: -1,
+      });
+    }
+  };
+
+  handleChange = (e) => {
     this.setState({
       novaTarefa: e.target.value,
     });
-  }
+  };
+
+  handleEdit = (e, index) => {
+    const { tarefas } = this.state;
+
+    this.setState({
+      index,
+      novaTarefa: tarefas[index],
+    });
+  };
+
+  handleDelete = (e, index) => {
+    const { tarefas } = this.state;
+    const novasTarefas = [...tarefas];
+    novasTarefas.splice(index, 1);
+
+    this.setState({
+      tarefas: [...novasTarefas],
+    });
+  };
 
   render() {
-    const { novaTarefa } = this.state;
+    const { novaTarefa, tarefas } = this.state;
     return (
       <div className="main">
-        <h1>{ novaTarefa }</h1>
-        <form action="#">
-          <input type="text" name="" id="" onChange={this.inputMudou} />
-          <button type="submit">Enviar</button>
-        </form>
+        <h1>Lista de Tarefas</h1>
+
+
+
+        <ul className="tarefas">
+          {tarefas.map((tarefa, index) => (
+            <li key={tarefa.trim()}>
+              {tarefa}
+              <span>
+                <FaEdit
+                  className="edit"
+                  onClick={(e) => this.handleEdit(e, index)}
+                />
+                <FaWindowClose
+                  className="delete"
+                  onClick={(e) => this.handleDelete(e, index)}
+                />
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     );
   }
